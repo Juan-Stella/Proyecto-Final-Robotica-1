@@ -112,8 +112,19 @@ Qvias = unwrap(Qvias, [], 1);
 Qtraj = mstraj(Qvias(2:end,:), vj, [], Qvias(1,:), dt, tacc); 
 Qvias = unwrap(Qvias, [], 1);      
 
-TOOL_STL = 'D:\01. Facultad\Robótica 1\Unidad 3\Códigos\Proyecto Final Robótica 1\franka_description\meshes\collision\pulidora.stl';             % <-- ruta real a tu STL
-T_mount  = transl(0,-0.05,0.10) * trotx(-pi/2) * trotz(pi); 
+
+[~,~,files] = fileparts(mfilename('fullpath'));
+thisDir = fileparts(mfilename('fullpath'));
+stlFiles = dir(fullfile(thisDir, 'pulidora.stl'));
+
+if isempty(stlFiles)
+    error('No se encontró ningún archivo .stl en el directorio actual (%s)', thisDir);
+else
+    TOOL_STL = fullfile(stlFiles(1).folder, stlFiles(1).name);
+    fprintf('Usando STL: %s\n', TOOL_STL);
+end
+
+T_mount  = transl(0,-0.05,0.10) * trotx(-pi/2) * trotz(pi);
 toolScale = [1 1 1];                    
 
 hURDF = panda_skin('init', ax, TOOL_STL, T_mount, toolScale);  
