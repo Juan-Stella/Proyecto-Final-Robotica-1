@@ -38,15 +38,15 @@ R.offset = [0, 0, 0, 0, 0, 0, 0];
 workspace = [-1 1 -1 1 -0.5 1.5];
 
 %% ========= PRUEBA DE IK (Panda 7-DoF, q7 fijado) =========
-q_true = [0.0, -0.4, 0.0, -1.5, 0.0, 1.2, 0.4];   % postura típica
+q_true = [0.0, -0.4, 0.0, -1.5, 0.0, 1.2, 0.4]   % postura típica
 disp('T_EE')
 T_EE   = R.fkine(q_true).double                  % objetivo en la punta
 
 q0         = q_true;
 q7_fijado  = q_true(7);
-mejor      = true;     % <<--- cambia a false si querés TODAS las soluciones
+mejor      = false;     % <<--- cambia a false si querés TODAS las soluciones
 
-Q = cin_inv_panda(R, T_EE, q0, mejor, q7_fijado);   % [7xN] o [7x1]
+Q = cin_inv_panda(R, T_EE, q0, mejor, q7_fijado)   % [7xN] o [7x1]
 
 if isempty(Q)
     error('cin_inv_panda no encontró soluciones para esta pose/q7.');
@@ -89,7 +89,7 @@ if ok == true
     fprintf('Error 0');
 end
 
-R.plot(q','workspace', workspace,'scale',0.65,'jointdiam',0.5,'notiles','floorlevel',0,'nobase','trail',{'r', 'LineWidth', 2})
-title('IK Panda - solución');
-hold on
-plot3(T_EE(1,4),T_EE(2,4),T_EE(3,4),'*k','markersize',40,'LineWidth',1)
+%R.plot(q','workspace', workspace,'scale',0.65,'jointdiam',0.5,'notiles','floorlevel',0,'nobase','trail',{'r', 'LineWidth', 2})
+%title('IK Panda - solución');
+%hold on
+%plot3(T_EE(1,4),T_EE(2,4),T_EE(3,4),'*k','markersize',40,'LineWidth',1)

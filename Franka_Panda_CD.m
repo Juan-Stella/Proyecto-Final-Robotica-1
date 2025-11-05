@@ -2,7 +2,7 @@ clc, clear, close all
 robot;
 q = [deg2rad(0),deg2rad(0),deg2rad(0),deg2rad(0),deg2rad(0),deg2rad(0),0];
 sistemas = [0,0,0,0, 0,0, 0];
-R.plot(q,'workspace', workspace,'nojoints','scale',0.001,'jointdiam',0.0001,'notiles','floorlevel',0,'nobase','trail',{'r', 'LineWidth', 2})
+R.plot(q,'workspace', workspace,'nojoints','scale',0.0001,'jointdiam',0.0001,'notiles','floorlevel',0,'nobase','trail',{'r', 'LineWidth', 2})
 ax = gca; hold(ax,'on');
 
 [~,~,files] = fileparts(mfilename('fullpath'));
