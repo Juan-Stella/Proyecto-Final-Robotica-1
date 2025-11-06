@@ -56,11 +56,13 @@ theta46H = atan2(abs(a5), d5);
 theta26H = theta46H + theta462;
 D26      = -L26 * cos(theta26H);
 
-V_6_62 = R6.' * (-V26);                 % Expreso el vector respecto al sistema 6
+V_6_62 = R6.' * (-V26);                
 phi6    = atan2(V_6_62(2), V_6_62(1));
 rho     = hypot(V_6_62(1), V_6_62(2));
 Theta6  = asin( clip(D26/max(rho,eps)) );
 q6_list = [pi - Theta6 - phi6,  Theta6 - phi6];
+q6_list(1) = atan2(sin(q6_list(1)), cos(q6_list(1)));   % <-- ahora quedan en [-pi, pi]
+
 
 % Conjunto de 4 soluciones
 qq = zeros(0,7);

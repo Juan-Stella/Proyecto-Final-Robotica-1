@@ -1,6 +1,6 @@
  clc, clear, close all
 robot;
-
+animar_si_no = 1;
 rtb = 'C:\Users\Juan\AppData\Roaming\MathWorks\MATLAB Add-Ons\Toolboxes\Robotics Toolbox for MATLAB';
 
 addpath('-begin', fullfile(rtb,'lib','spatial-math'));
@@ -19,7 +19,17 @@ Rtool2 = Rtool * troty(-pi/2);
 T0 = transl(-0.40+dx, 0.1, 0.30+dz) * Rtool;
 q0 = cin_inv_panda(R, T0, q(1,:), true, 0);
 
-R.plot(q0','workspace',workspace,'nojaxes','notiles','noshadow','nowrist','scale',0.001,'jointdiam',0.5, ...
+import java.net.DatagramSocket
+import java.net.DatagramPacket
+import java.net.InetAddress
+
+host = '127.0.0.1'; port = 8051;
+udpSocket = DatagramSocket();
+addr = InetAddress.getByName(host);
+
+
+
+R.plot(q0','workspace',workspace,'nowrist','nojoints','nojaxes','noshadow','scale',0.001,'jointdiam',0.001, ...
     'notiles','floorlevel',0,'nobase','trail',{'r','LineWidth',2})
 
 ax = gca; hold(ax,'on');
@@ -27,6 +37,23 @@ ax = gca; hold(ax,'on');
 V = draw_cube(ax, [-0.50+dx, 0.25+dy, 0.15+dz], 0.20, ...
     'Color',[0.8 0.8 1],'Alpha',0.3);
 draw_layout_celda(ax, V, R);
+
+host = '127.0.0.1'; portCube = 8052;
+udpSocket2 = DatagramSocket();
+addr = InetAddress.getByName(host);
+
+%centro = [-0.50+dx, 0.25+dy, 0.15+dz];   % (x,y,z) en m  ← EXACTO al que usás en draw_cube
+centro = [-1*(-0.50+dx),-1*(0.15+dz),-1*(0.25+dy)]
+lado   = 0.20;                            % en m
+
+pktCube = struct('c', single(centro), 'L', single(lado));
+msg2 = jsonencode(pktCube);
+data2 = uint8(msg2);
+packet2 = DatagramPacket(data2, numel(data2), addr, portCube);
+udpSocket2.send(packet2);
+
+
+
 TOOL_STL = 'D:\01. Facultad\Robótica 1\Unidad 3\Códigos\Proyecto Final Robótica 1\franka_description\meshes\collision\pulidora.stl';             % <-- ruta real a tu STL
 T_mount = transl(0.004, 0.000, 0.102) * trotx(-pi/2) * trotz(pi);   % <-- ajuste fino de montaje
 toolOpt  = struct('toolMesh',TOOL_STL, ...
@@ -151,13 +178,27 @@ T_mount  = transl(0,-0.05,0.10) * trotx(-pi/2) * trotz(pi);
 toolScale = [1 1 1];          
 hURDF = panda_skin('init', ax, TOOL_STL, T_mount, toolScale);  
 TT = Tc;
+
     for j=1:size(TT,3)
+         q_deg = rad2deg(q0);                   % q0 en rad de tu solver → grados
+        pkt = struct('q', single(q_deg));      % [1x7]
+        msg = jsonencode(pkt);
+        data = uint8(msg);
+        packet = DatagramPacket(data, numel(data), addr, port);
+        udpSocket.send(packet);
+        
         J=R.jacob0(q0);
         detJ=abs(det(J(1:6,1:6)));
         QQ=cin_inv_panda(R,TT(:,:,j),q0,mejor,q7fijo);
         q0=QQ(:,1).';
         Qgraf(:,j) = q0;
-        R.animate(q0); panda_skin(q0,[]);
+       
+
+
+        if animar_si_no ==1
+          R.animate(q0); 
+          panda_skin(q0,[]);
+        end
         val = min(detJ/0.1,1);
         set(barra,'XData',[0 val val 0], 'YData',[0 0 1 1]);
         set(texto,'String',sprintf('|det(J)|: %.1f %%',val*100));
@@ -318,43 +359,84 @@ end
 
 function graf = vel_acel(q)
 
-    [N, ~] = size(q);
-    Ts = 0.08;
-    t = (0:N-1)'*Ts;
-    qd  = zeros(N,size(q,2));
-    qdd = zeros(N,size(q,2));
-    for c = 1:size(q,2)
-        qd(:,c)  = gradient(q(:,c),  Ts);
-        qdd(:,c) = gradient(qd(:,c), Ts);
+[N, ~] = size(q);
+Ts = 0.08;
+t = (0:N-1)'*Ts;
+qd  = zeros(N,size(q,2));
+qdd = zeros(N,size(q,2));
+for c = 1:size(q,2)
+    qd(:,c)  = gradient(q(:,c),  Ts);
+    qdd(:,c) = gradient(qd(:,c), Ts);
+end
+
+% --- Graficar variables articulares y límites ---
+figure(2); clf
+subplot(3,1,1)
+qplot(t,q); hold on; grid on
+ylabel('q [rad]'); title('Articulares')
+
+R = evalin('base','R');
+% Obtener los límites articulares
+qlim = R.qlim;
+
+subplot(3,1,2)
+qplot(t,qd);  grid on; ylabel('q̇ [rad/s]')
+subplot(3,1,3)
+qplot(t,qdd); grid on; ylabel('q̈ [rad/s²]'); xlabel('t [s]')
+
+% --- Variables cartesianas ---
+p = zeros(N,3);
+for k = 1:N
+    T = R.fkine(q(k,:));
+    p(k,:) = transl(T);    
+end
+
+pd  = zeros(N,3);
+pdd = zeros(N,3);
+for c = 1:3
+    pd(:,c)  = gradient(p(:,c),  Ts);
+    pdd(:,c) = gradient(pd(:,c), Ts);
+end
+
+figure(3); clf
+subplot(3,1,1); plot(t,p,'LineWidth',1.2);   grid on
+ylabel('pos [m]'); title('Variables cartesianas')
+legend({'x','y','z'},'Location','best')
+subplot(3,1,2); plot(t,pd,'LineWidth',1.2);  grid on
+ylabel('vel [m/s]'); legend({'ẋ','ẏ','ż'},'Location','best')
+subplot(3,1,3); plot(t,pdd,'LineWidth',1.2); grid on
+ylabel('acel [m/s^2]');legend({'ẍ','ÿ','z̈'},'Location','best')
+
+figure(4); clf
+qplot(t, q); hold on; grid on
+ylabel('q [rad]'); title('Articulares')
+
+% Obtener los límites articulares
+qlim = R.qlim;
+
+% Obtener todas las líneas del gráfico (una por articulación)
+ax = gca;
+lines = findobj(ax, 'Type', 'Line');
+
+% En qplot, la primera línea corresponde a la última articulación (orden inverso)
+for i = 1:size(q,2)
+    if i <= numel(lines)
+        lineObj = lines(end - i + 1);
+        col  = lineObj.Color;
+        style = lineObj.LineStyle;
+    else
+        col = [0 0 0];
+        style = '-';
     end
+    
+    % Dibujar las líneas de los límites con mismo color y estilo
+    yline(qlim(i,1), style, 'Color', col, 'LineWidth', 1);
+    yline(qlim(i,2), style, 'Color', col, 'LineWidth', 1);
+end
 
-    figure(2); clf
-    subplot(3,1,1); qplot(t,q);   grid on; ylabel('q [rad]');     title('Articulares')
-    subplot(3,1,2); qplot(t,qd);  grid on; ylabel('q̇ [rad/s]')
-    subplot(3,1,3); qplot(t,qdd); grid on; ylabel('q̈ [rad/s²]'); xlabel('t [s]')
+hold off
 
-    R = evalin('base','R');
-    p = zeros(N,3);
-    for k = 1:N
-        T = R.fkine(q(k,:));
-        p(k,:) = transl(T);    
-    end
 
-    pd  = zeros(N,3);
-    pdd = zeros(N,3);
-    for c = 1:3
-        pd(:,c)  = gradient(p(:,c),  Ts);
-        pdd(:,c) = gradient(pd(:,c), Ts);
-    end
-
-    figure(3); clf
-    subplot(3,1,1); plot(t,p,'LineWidth',1.2);   grid on
-    ylabel('pos [m]'); title('Variables cartesianas')
-    legend({'x','y','z'},'Location','best')
-    subplot(3,1,2); plot(t,pd,'LineWidth',1.2);  grid on
-    ylabel('vel [m/s]'); legend({'ẋ','ẏ','ż'},'Location','best')
-    subplot(3,1,3); plot(t,pdd,'LineWidth',1.2); grid on
-    ylabel('acel [m/s^2]');legend({'ẍ','ÿ','z̈'},'Location','best')
 end
 
 function P = Tstack2pose(Tstack, unit)

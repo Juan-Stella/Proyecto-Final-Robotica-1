@@ -2,7 +2,7 @@ clc, clear, close all
 robot;
 q = [deg2rad(0),deg2rad(0),deg2rad(0),deg2rad(0),deg2rad(0),deg2rad(0),0];
 sistemas = [0,0,0,0, 0,0, 0];
-R.plot(q,'workspace', workspace,'nojoints','scale',0.0001,'jointdiam',0.0001,'notiles','floorlevel',0,'nobase','trail',{'r', 'LineWidth', 2})
+R.plot(q,'workspace', workspace,'nojoints','scale',0.5,'jointdiam',0.5,'notiles','floorlevel',0,'nobase','trail',{'r', 'LineWidth', 2})
 ax = gca; hold(ax,'on');
 
 [~,~,files] = fileparts(mfilename('fullpath'));
@@ -19,10 +19,10 @@ end
 T_mount  = transl(0,-0.05,0.10) * trotx(-pi/2) * trotz(pi);
 toolScale = [1 1 1];                      
 
-hURDF = panda_skin('init', ax, TOOL_STL, T_mount, toolScale);  
-panda_skin(q,[]);
+%hURDF = panda_skin('init', ax, TOOL_STL, T_mount, toolScale);  
+%panda_skin(q,[]);
 %R.teach()
-
+R.teach;
 hold on
 for i = 1:length(sistemas)
     if sistemas(i) == 1
