@@ -38,19 +38,19 @@ V = draw_cube(ax, [-0.50+dx, 0.25+dy, 0.15+dz], 0.20, ...
     'Color',[0.8 0.8 1],'Alpha',0.3);
 draw_layout_celda(ax, V, R);
 
-host = '127.0.0.1'; portCube = 8052;
-udpSocket2 = DatagramSocket();
-addr = InetAddress.getByName(host);
+%host = '127.0.0.1'; portCube = 8052;
+%udpSocket2 = DatagramSocket();
+%addr = InetAddress.getByName(host);
 
 %centro = [-0.50+dx, 0.25+dy, 0.15+dz];   % (x,y,z) en m  ← EXACTO al que usás en draw_cube
-centro = [-1*(-0.50+dx),-1*(0.15+dz),-1*(0.25+dy)]
-lado   = 0.20;                            % en m
+%centro = [-1*(-0.50+dx),-1*(0.15+dz),-1*(0.25+dy)]
+%lado   = 0.20;                            % en m
 
-pktCube = struct('c', single(centro), 'L', single(lado));
-msg2 = jsonencode(pktCube);
-data2 = uint8(msg2);
-packet2 = DatagramPacket(data2, numel(data2), addr, portCube);
-udpSocket2.send(packet2);
+%pktCube = struct('c', single(centro), 'L', single(lado));
+%msg2 = jsonencode(pktCube);
+%data2 = uint8(msg2);
+%packet2 = DatagramPacket(data2, numel(data2), addr, portCube);
+%udpSocket2.send(packet2);
 
 
 
@@ -409,33 +409,7 @@ ylabel('acel [m/s^2]');legend({'ẍ','ÿ','z̈'},'Location','best')
 
 figure(4); clf
 qplot(t, q); hold on; grid on
-ylabel('q [rad]'); title('Articulares')
-
-% Obtener los límites articulares
-qlim = R.qlim;
-
-% Obtener todas las líneas del gráfico (una por articulación)
-ax = gca;
-lines = findobj(ax, 'Type', 'Line');
-
-% En qplot, la primera línea corresponde a la última articulación (orden inverso)
-for i = 1:size(q,2)
-    if i <= numel(lines)
-        lineObj = lines(end - i + 1);
-        col  = lineObj.Color;
-        style = lineObj.LineStyle;
-    else
-        col = [0 0 0];
-        style = '-';
-    end
-    
-    % Dibujar las líneas de los límites con mismo color y estilo
-    yline(qlim(i,1), style, 'Color', col, 'LineWidth', 1);
-    yline(qlim(i,2), style, 'Color', col, 'LineWidth', 1);
-end
-
-hold off
-
+ylabel('q [rad]'); title('Posiciones Articulares')
 
 end
 

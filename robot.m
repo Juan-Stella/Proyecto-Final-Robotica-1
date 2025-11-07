@@ -1,4 +1,3 @@
-%Archivo robot.m
 clc, clear, close all
 
 dh = [
@@ -37,59 +36,3 @@ R.offset = [0, 0, 0, 0, 0, 0, 0];
 
 workspace = [-1 1 -1 1 -0.5 1.5];
 
-%% ========= PRUEBA DE IK (Panda 7-DoF, q7 fijado) =========
-q_true = [0.0, -0.4, 0.0, -1.5, 0.0, 1.2, 0.4]   % postura típica
-disp('T_EE')
-T_EE   = R.fkine(q_true).double                  % objetivo en la punta
-
-q0         = q_true;
-q7_fijado  = q_true(7);
-mejor      = false;     % <<--- cambia a false si querés TODAS las soluciones
-
-Q = cin_inv_panda(R, T_EE, q0, mejor, q7_fijado)   % [7xN] o [7x1]
-
-if isempty(Q)
-    error('cin_inv_panda no encontró soluciones para esta pose/q7.');
-end
-
-% Mostrar errores de FK
-if isvector(Q)
-    q = Q(:);
-    Tchk = R.fkine(q.').double;
-    Rerr = Tchk(1:3,1:3)' * T_EE(1:3,1:3);
-    ang_err = acos( max(-1,min(1,(trace(Rerr)-1)/2)) );
-    pos_err = norm(Tchk(1:3,4) - T_EE(1:3,4));
-    fprintf('Única sol: |Δp|=%.3g m, Δang=%.3g rad\n', pos_err, ang_err);
-else
-    fprintf('\nSe obtuvieron %d soluciones.\n', size(Q,2));
-    for k = 1:size(Q,2)
-        Tchk = R.fkine(Q(:,k).').double;
-        Rerr = Tchk(1:3,1:3)' * T_EE(1:3,1:3);
-        ang_err = acos( max(-1,min(1,(trace(Rerr)-1)/2)) );
-        pos_err = norm(Tchk(1:3,4) - T_EE(1:3,4));
-        fprintf('Sol %d:  |Δp|=%.3g m,  Δang=%.3g rad\n', k, pos_err, ang_err);
-    end
-    q = Q(:,1); % elegí la que quieras para graficar
-end
-
-T_encontrada  = R.fkine(q.').double
-% compara T_EE con T_encontrada
-Tdiff = T_EE - T_encontrada;
-
-tol = 1e-12;                         % umbral (ajustalo si hace falta)
-Tclean = Tdiff;
-Tclean(abs(Tclean) < tol) = 0;       % pone a 0 los valores pequeñitos
-
-disp('Resta entre matrices (con tolerancia):')
-Tclean
-
-% si querés un booleano de “todo OK”:
-ok = all(abs(Tdiff) < tol, 'all');   % true si todo está dentro de tol
-if ok == true
-    fprintf('Error 0');
-end
-
-%R.plot(q','workspace', workspace,'scale',0.65,'jointdiam',0.5,'notiles','floorlevel',0,'nobase','trail',{'r', 'LineWidth', 2})
-%title('IK Panda - solución');
-%hold on
-%plot3(T_EE(1,4),T_EE(2,4),T_EE(3,4),'*k','markersize',40,'LineWidth',1)

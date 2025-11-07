@@ -19,10 +19,9 @@ end
 T_mount  = transl(0,-0.05,0.10) * trotx(-pi/2) * trotz(pi);
 toolScale = [1 1 1];                      
 
-%hURDF = panda_skin('init', ax, TOOL_STL, T_mount, toolScale);  
-%panda_skin(q,[]);
+hURDF = panda_skin('init', ax, TOOL_STL, T_mount, toolScale);  
+panda_skin(q,[]);
 %R.teach()
-R.teach;
 hold on
 for i = 1:length(sistemas)
     if sistemas(i) == 1
@@ -33,8 +32,6 @@ for i = 1:length(sistemas)
         trplot(T, 'frame', ['{' num2str(i-1) '}'], 'length', 0.8);
     end
 end
-
-hold off;
 
 function hRoot = panda_skin(arg, axIn, TOOL_STL, T_mount, toolScale)
 persistent panda cfg ax S perm initialized lim0 dasp0 hURDF
