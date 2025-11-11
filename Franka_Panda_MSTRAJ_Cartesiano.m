@@ -106,7 +106,8 @@ TT1 = cat(3, T0, T2,T3,T4,T5,T6,T7,T8,T9,T10,T11, ...
 dt   = 0.08;   tacc = 0.5;
 
 Tc1 = ctraj(T0,  T2,  20);
-Tc3 = ctraj(T11, T13, 20);
+Tc3 = ctraj(T11, T12, 20);
+Tc33 = ctraj(T12, T13, 20);
 Tc5 = ctraj(T21, T12, 20);
 Tc6 = ctraj(T12, T0,  20);
 
@@ -134,7 +135,7 @@ for k=1:size(Pc_lat,1)
     Tc4(1:3,4,k) = Pc_lat(k,1:3).';
 end
 
-Tc = cat(3, Tc1, Tc2, Tc3, Tc4, Tc5, Tc6);
+Tc = cat(3, Tc1, Tc2, Tc3, Tc33, Tc4, Tc5, Tc6);
 
 
 %% GRAFICAR PUNTOS
@@ -198,6 +199,9 @@ TT = Tc;
         if animar_si_no ==1
           R.animate(q0); 
           panda_skin(q0,[]);
+        end
+        if j == 1
+            pause(9)
         end
         val = min(detJ/0.1,1);
         set(barra,'XData',[0 val val 0], 'YData',[0 0 1 1]);
@@ -411,6 +415,10 @@ figure(4); clf
 qplot(t, q); hold on; grid on
 ylabel('q [rad]'); title('Posiciones Articulares')
 
+figure(5);clf
+plot(t,p,'LineWidth',1.2);   grid on
+ylabel('pos [m]'); title('Posiciones cartesianas')
+legend({'x','y','z'},'Location','best')
 end
 
 function P = Tstack2pose(Tstack, unit)

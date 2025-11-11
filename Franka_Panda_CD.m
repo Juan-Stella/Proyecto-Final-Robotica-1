@@ -20,8 +20,8 @@ T_mount  = transl(0,-0.05,0.10) * trotx(-pi/2) * trotz(pi);
 toolScale = [1 1 1];                      
 
 hURDF = panda_skin('init', ax, TOOL_STL, T_mount, toolScale);  
-panda_skin(q,[]);
-%R.teach()
+%panda_skin(q,[]);
+R.teach()
 hold on
 for i = 1:length(sistemas)
     if sistemas(i) == 1
