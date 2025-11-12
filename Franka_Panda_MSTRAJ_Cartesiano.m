@@ -14,7 +14,6 @@ dy = -0.12;
 dz = 0.20;      
 
 Rtool  = troty(pi);
-Rtool2 = Rtool * troty(-pi/2);
 
 T0 = transl(-0.40+dx, 0.1, 0.30+dz) * Rtool;
 q0 = cin_inv_panda(R, T0, q(1,:), true, 0);
