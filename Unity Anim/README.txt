@@ -1,0 +1,1 @@
+Los archivos mesh, visual, etc se encuentran en el github indicado en el informe
